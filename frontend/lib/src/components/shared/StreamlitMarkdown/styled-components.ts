@@ -181,6 +181,7 @@ export const StyledStreamlitMarkdown =
         color: "inherit",
         // Always respect the width of the parent container:
         maxWidth: "100%",
+        width: "100%",
         // Break long words to prevent them from overflowing the container:
         overflowWrap: "break-word",
         ...sharedMarkdownStyle(theme),
@@ -269,6 +270,8 @@ export const StyledStreamlitMarkdown =
           marginBottom: theme.spacing.lg,
           // Prevent double borders
           borderCollapse: "collapse",
+          // Make tables display as inline-block so they respect text-align
+          display: "inline-block",
         },
 
         tr: {
@@ -313,6 +316,17 @@ export const StyledStreamlitMarkdown =
 
         "p, ol, ul, dl, li": {
           fontSize: "inherit",
+        },
+
+        // Make top-level ul and ol inline-block so they respect text-align
+        "& > ul, & > ol": {
+          display: "inline-block",
+          textAlign: "left", // Reset text-align for content inside lists
+        },
+
+        // Ensure nested lists stay as block elements
+        "li > ul, li > ol": {
+          display: "block",
         },
 
         // Allow long Latex formulas that are not inline (i.e. either from `st.latex`

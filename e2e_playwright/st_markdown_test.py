@@ -378,3 +378,107 @@ def test_long_word_in_container(app: Page, assert_snapshot: ImageCompareFunction
     container = get_element_by_key(app, "long_word")
     expect(container).to_be_visible()
     assert_snapshot(container, name="st_markdown-long_word_in_container")
+
+
+@pytest.mark.parametrize(
+    ("alignment_value", "text_content"),
+    [
+        ("left", "Left aligned text is the default behavior"),
+        ("center", "Center aligned text with some content"),
+        ("right", "Right aligned text content demonstrates"),
+        ("justify", "Justified text alignment"),
+    ],
+)
+def test_markdown_text_alignment(
+    app: Page,
+    assert_snapshot: ImageCompareFunction,
+    alignment_value: str,
+    text_content: str,
+):
+    """Test st.markdown text alignment for all alignment types.
+
+    This test verifies that text, tables, and nested lists all respond correctly
+    to text-align CSS for each alignment value.
+    """
+    # Get the markdown element by filtering for the specific text content
+    markdown_element = get_markdown(app, text_content)
+    markdown_element.scroll_into_view_if_needed()
+
+    # Verify CSS is applied to the container
+    expect(markdown_element).to_have_css("text-align", alignment_value)
+
+    # Verify all content types are present in the element
+    # 1. Text
+    expect(markdown_element.get_by_text(text_content, exact=False)).to_be_visible()
+
+    # 2. Table (critical for inline-block CSS approach)
+    table = markdown_element.locator("table")
+    expect(table).to_be_visible()
+
+    # 3. Nested list (critical for verifying indentation preservation)
+    top_level_items = markdown_element.locator("ul > li")
+    expect(top_level_items.first).to_be_visible()
+
+    # Verify nested items exist and are properly indented
+    nested_items = markdown_element.locator("li li")
+    expect(nested_items.first).to_be_visible()
+
+    # Single comprehensive snapshot showing text + table + list alignment
+    assert_snapshot(
+        markdown_element, name=f"st_markdown-text_alignment_{alignment_value}"
+    )
+
+
+def test_markdown_text_alignment_with_width(app: Page):
+    """Test that text_alignment CSS is applied regardless of width parameter."""
+    # Get width test container
+    width_container = get_element_by_key(app, "width_tests")
+
+    # Center with stretch width
+    stretch_element = width_container.get_by_text("Center with stretch width").locator(
+        ".."
+    )
+    expect(stretch_element).to_be_visible()
+    expect(stretch_element).to_have_css("text-align", "center")
+
+    # Center with content width
+    content_element = width_container.get_by_text("Center with content width").locator(
+        ".."
+    )
+    expect(content_element).to_be_visible()
+    expect(content_element).to_have_css("text-align", "center")
+
+
+def test_markdown_short_text_alignment_with_help(
+    app: Page, assert_snapshot: ImageCompareFunction
+):
+    """Test short centered markdown with help tooltip to verify icon alignment."""
+    short_centered = get_markdown(app, "Short text")
+    short_centered.scroll_into_view_if_needed()
+    expect(short_centered).to_have_css("text-align", "center")
+
+    # Verify help tooltip is present and works
+    expect_help_tooltip(app, short_centered, "This is a help tooltip!")
+
+    assert_snapshot(short_centered, name="st_markdown-short_text_center_with_help")
+
+
+def test_caption_text_alignment(app: Page, assert_snapshot: ImageCompareFunction):
+    """Test st.caption with text alignment."""
+    # Test center alignment
+    caption_center = get_caption(app, "Centered caption text")
+    caption_center.scroll_into_view_if_needed()
+    expect(caption_center).to_have_css("text-align", "center")
+    assert_snapshot(caption_center, name="st_caption-text_alignment_center")
+
+    # Test right alignment
+    caption_right = get_caption(app, "Right aligned caption")
+    caption_right.scroll_into_view_if_needed()
+    expect(caption_right).to_have_css("text-align", "right")
+    assert_snapshot(caption_right, name="st_caption-text_alignment_right")
+
+    # Test justify alignment
+    caption_justify = get_caption(app, "Justified caption text")
+    caption_justify.scroll_into_view_if_needed()
+    expect(caption_justify).to_have_css("text-align", "justify")
+    assert_snapshot(caption_justify, name="st_caption-text_alignment_justify")
