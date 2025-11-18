@@ -20,10 +20,7 @@ import { Markdown as MarkdownProto } from "@streamlit/protobuf"
 
 import { BaseButtonTooltip } from "~lib/components/shared/BaseButton"
 import StreamlitMarkdown from "~lib/components/shared/StreamlitMarkdown"
-import {
-  InlineTooltipIcon,
-  StyledLabelHelpWrapper,
-} from "~lib/components/shared/TooltipIcon"
+import { StyledLabelHelpWrapper } from "~lib/components/shared/TooltipIcon"
 
 export interface MarkdownProps {
   element: MarkdownProto
@@ -48,33 +45,32 @@ function Markdown({ element }: Readonly<MarkdownProps>): ReactElement {
     elementType === MarkdownProto.Type.NATIVE &&
     SINGLE_BADGE_REGEX.test(body.trim())
 
-  const markdown = (
-    <StreamlitMarkdown
-      isCaption={isCaption}
-      source={body}
-      allowHTML={allowHtml}
-    />
-  )
-
   let content: ReactElement
   if (help && isSingleBadgeOnly) {
     // For single badge markdown with help, show the BaseButtonTooltip
     content = (
       <BaseButtonTooltip help={help} containerWidth={false}>
-        {markdown}
+        <StreamlitMarkdown
+          isCaption={isCaption}
+          source={body}
+          allowHTML={allowHtml}
+        />
       </BaseButtonTooltip>
     )
-  } else if (help) {
-    // For other markdown with help, show the inline tooltip
+  } else {
+    // For other markdown (with or without help), render with inline help directive
+    // Append help directive to markdown source so it renders inline
+    const source = help ? `${body} :help[${help}]` : body
+
     content = (
       <StyledLabelHelpWrapper isLatex={isLatex}>
-        {markdown}
-        <InlineTooltipIcon content={help} isLatex={isLatex} />
+        <StreamlitMarkdown
+          isCaption={isCaption}
+          source={source}
+          allowHTML={allowHtml}
+        />
       </StyledLabelHelpWrapper>
     )
-  } else {
-    // No help provided, render markdown normally
-    content = markdown
   }
 
   return (
