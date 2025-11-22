@@ -1,0 +1,5 @@
+# Push to GitHub, then connect to Streamlit Cloud
+git init
+git add .
+git commit -m "Deploy Quantum Quinte AI"
+git push
